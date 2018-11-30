@@ -1,0 +1,63 @@
+{
+	"repositories": [
+		{ "type": "composer", "url": "https://composer.typo3.org/" }
+	],
+	"name": "typo3/cms-base-distribution",
+	"description" : "TYPO3 CMS Base Distribution",
+	"license": "GPL-2.0+",
+	"require": {
+		"typo3/cms": "^8.7",
+		"typo3/cms-belog": "^8.7",
+		"typo3/cms-beuser": "^8.7",
+		"typo3/cms-context-help": "^8.7",
+		"typo3/cms-fluid-styled-content": "^8.7",
+		"typo3/cms-felogin": "^8.7",
+		"typo3/cms-filelist": "^8.7",
+		"typo3/cms-impexp": "^8.7",
+		"typo3/cms-info": "^8.7",
+		"typo3/cms-info-pagetsconfig": "^8.7",
+		"typo3/cms-lowlevel": "^8.7",
+		"typo3/cms-reports": "^8.7",
+		"typo3/cms-rsaauth": "^8.7",
+		"typo3/cms-setup": "^8.7",
+		"typo3/cms-tstemplate": "^8.7",
+		"typo3/cms-viewpage": "^8.7",
+		"typo3/cms-rte-ckeditor": "^8.7",
+		"typo3/cms-wizard-crpages": "^8.7",
+		"typo3/cms-wizard-sortpages": "^8.7",
+		"typo3/cms-func": "^8.7",
+
+		"helhum/typo3-secure-web": "^0.2",
+
+		"symfony/process": "~2.7.0",
+		"symfony/filesystem": "^4.1",
+		"symfony/config": "^4.1",
+
+		"georgringer/news": "^6.1",
+
+		"helhum/dotenv-connector": "^1.0.0",
+		"helhum/config-loader": "^0.5.0",
+		"helhum/typo3-console": "^4.0",
+		"helhum/env-ts": "^0.3.0",
+		"dmitryd/typo3-realurl": "^2.4"
+	},
+	"extra": {
+		"typo3/cms": {
+			"cms-package-dir": "{$vendor-dir}/typo3/cms",
+			"web-dir": "public",
+			"root-dir": "private"
+		},
+		"helhum/typo3-console": {
+			"install-extension-dummy": "0"
+		}
+	},
+	"require-dev": {
+		"portrino/typo3-whoops": "0.1.*",
+		"jigal/t3adminer": "8.0.*",
+		"typo3/testing-framework": "^2.0",
+		"georgringer/backend-debug": "^1.1",
+		"typo3/cms-t3editor": "^8.7.20",
+		"warmiak/scaffolding": "^0.1.0",
+		"warmiak/seeder": "^0.1.0"
+	}
+}

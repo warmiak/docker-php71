@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+
+
+#
+# Check if an Application exist
+#
+if [ -d app ]; then
+	echo "$(tput setaf 3)Application exist, starting Docker Container$(tput sgr 0)"
+else
+	echo "$(tput setaf 3)No Application found, installing Application from default composer.json$(tput sgr 0)"
+	
+	mkdir app;
+
+	typo3Path=$PWD'/.docker/typo3/';
+	appPath=$PWD'/app/';
+
+	rsync -a $typo3Path'composer.json' $appPath'composer.json';
+	rsync -a $typo3Path'.editorconfig' $appPath'.editorconfig';
+	rsync -a $typo3Path'.gitignore' $appPath'.gitignore';
+	
+	cd app && composer update && cd ..
+fi
+
+
+#
+# Check if Docker Env File exist
+#
+if [ ! -e .env ]; then
+	rsync -a $PWD'/.env.example' $PWD'/.env';
+fi
+
+
+#
+# Start Docker Container
+#
+echo ""
+if [ "$1" == "build"  ]; then
+	docker-compose up -d --build
+elif [ "$1" == "log" ]; then
+	docker-compose logs -f -t --tail="all"
+else
+	docker-compose up -d
+fi
+
+
+#
+# Check if Typo3 is set up
+#
+if [ -e app/private/typo3conf/LocalConfiguration.php ]; then
+	echo ""
+	echo "$(tput setaf 3)Typo3 is set up. Happy coding$(tput sgr 0)";
+else
+	
+	read -p "$(tput setaf 2)Install default Typo3 Settings ? Type (yes) and press enter , cancel with any other key.$(tput sgr 0) [yes/no]: " kommando; 
+	
+	if [ "$kommando" == 'yes' ]; then 
+
+		echo "Start Post-install"; 
+
+		docker-compose exec -T --user application web bash -c '\
+			vendor/bin/typo3cms install:setup \
+			--non-interactive \
+			--database-user-name root \
+			--database-user-password password \
+			--database-host-name db \
+			--database-port 3306 \
+			--database-name typo3 \
+			--admin-user-name rm_admin \
+			--admin-password betatester \
+			--site-name Playground'
+
+		docker-compose exec -T --user application web bash -c '\
+			vendor/bin/typo3cms install:generatePackagestates \
+			--framework-extensions $TYPO3_ACTIVE_FRAMEWORK_EXTENSIONS \
+			--excluded-extensions $TYPO3_EXCLUDED_EXTENSIONS'
+
+		docker-compose exec -T --user application web bash -c '\
+			vendor/bin/typo3cms database:updateschema destructive'
+
+		docker-compose exec -T --user application web bash -c '\
+			vendor/bin/typo3cms database:updateschema destructive'
+
+		rsync -a ./.docker/typo3/AdditionalConfiguration.php app/private/typo3conf/
+
+	echo ""
+	echo "$(tput setaf 3)Typo3 is set up. Happy coding$(tput sgr 0)";
+	
+	else 
+		
+		echo ""
+		echo "$(tput setaf 3)Cancel Post-install.$(tput sgr 0)";
+
+	fi
+fi
+
+
+#
+# Database Import
+#
+read -p "Import Database ? Type Yes (yes) and press enter , cancel with any other key. [yes/no]: " database
+
+if [ "$database" == "yes" ]; then
+
+	if [ -d database ]; then
+	
+		echo "Start Local Database import";
+	
+	else
+
+		echo "Start Network Database import"
+
+	fi
+else
+	echo "Cancel Database import"
+fi
+
+
+#
+# Laravel Mix Install
+#
+read -p "Install Laravel Mix ? Type Yes (yes) and press enter , cancel with any other key. [yes/no]: " laravelmix
+
+if [ "$laravelmix" == "yes" ]; then
+	
+	rsync -a ./.docker/webpack/package.json app/private/
+	rsync -a ./.docker/webpack/webpack.mix.js app/private/
+	rsync -ra ./.docker/assets app/private/
+	rsync -ra ./.docker/template app/private/fileadmin/
+
+	echo "Laravel Mix installed"
+fi
+
+

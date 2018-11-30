@@ -1,0 +1,16 @@
+/node_modules
+/vendor
+/.idea
+/.vscode
+/.vagrant
+/app/*
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.php_cs.cache
+.env
+.phpunit.result.cache
+.DS_Store
+.idea
+.env
