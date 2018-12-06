@@ -1,32 +1,51 @@
 #!/usr/bin/env bash
 
 
+WORKING_DIR=$PWD
+
+TYPO3_PATH=${WORKING_DIR}'/.docker/typo3/';
+APP_PATH=${WORKING_DIR}'/app/';
+
+#
+# Check if Docker Env File exist
+#
+if { ! -e .env }; then
+	rsync -a ${WORKING_DIR}'/.env.example' ${WORKING_DIR}'/.env';
+fi
+
+
 #
 # Check if an Application exist
 #
-if [ -d app ]; then
+if { -d app }; then
 	echo "$(tput setaf 3)Application exist, starting Docker Container$(tput sgr 0)"
 else
 	echo "$(tput setaf 3)No Application found, installing Application from default composer.json$(tput sgr 0)"
 	
 	mkdir app;
 
-	typo3Path=$PWD'/.docker/typo3/';
-	appPath=$PWD'/app/';
-
-	rsync -a $typo3Path'composer.json' $appPath'composer.json';
-	rsync -a $typo3Path'.editorconfig' $appPath'.editorconfig';
-	rsync -a $typo3Path'.gitignore' $appPath'.gitignore';
+	rsync -a ${TYPO3_PATH}'composer.json' ${APP_PATH}'composer.json';
+	rsync -a ${TYPO3_PATH}'.editorconfig' ${APP_PATH}'.editorconfig';
+	rsync -a ${TYPO3_PATH}'.gitignore' ${APP_PATH}'.gitignore';
 	
 	cd app && composer update && cd ..
 fi
 
 
 #
-# Check if Docker Env File exist
+# Laravel Mix Install
 #
-if [ ! -e .env ]; then
-	rsync -a $PWD'/.env.example' $PWD'/.env';
+if { ! -e app/private/webpack.mix.js }; then
+    read -p "Install Laravel Mix ? Type Yes (yes) and press enter , cancel with any other key. [yes/no]: " laravelmix
+
+    if { "$laravelmix" == "yes" }; then
+        rsync -a ./.docker/webpack/package.json app/private/
+        rsync -a ./.docker/webpack/webpack.mix.js app/private/
+        rsync -ra ./.docker/assets app/private/
+        rsync -ra ./.docker/template app/private/fileadmin/
+
+        echo "Laravel Mix installed"
+    fi
 fi
 
 
@@ -34,9 +53,9 @@ fi
 # Start Docker Container
 #
 echo ""
-if [ "$1" == "build"  ]; then
+if { "$1" == "build" }; then
 	docker-compose up -d --build
-elif [ "$1" == "log" ]; then
+elif { "$1" == "log" }; then
 	docker-compose logs -f -t --tail="all"
 else
 	docker-compose up -d
@@ -46,14 +65,14 @@ fi
 #
 # Check if Typo3 is set up
 #
-if [ -e app/private/typo3conf/LocalConfiguration.php ]; then
+if { -e app/private/typo3conf/LocalConfiguration.php }; then
 	echo ""
 	echo "$(tput setaf 3)Typo3 is set up. Happy coding$(tput sgr 0)";
 else
 	
-	read -p "$(tput setaf 2)Install default Typo3 Settings ? Type (yes) and press enter , cancel with any other key.$(tput sgr 0) [yes/no]: " kommando; 
+	read -p "$(tput setaf 2)Install default Typo3 Settings ? Type (yes) and press enter , cancel with any other key.$(tput sgr 0) [yes/no]: " typo3setup;
 	
-	if [ "$kommando" == 'yes' ]; then 
+	if { "$typo3setup" == "yes" }; then
 
 		echo "Start Post-install"; 
 
@@ -99,9 +118,9 @@ fi
 #
 read -p "Import Database ? Type Yes (yes) and press enter , cancel with any other key. [yes/no]: " database
 
-if [ "$database" == "yes" ]; then
+if { "$database" == "yes" }; then
 
-	if [ -d database ]; then
+	if { -d database }; then
 	
 		echo "Start Local Database import";
 	
@@ -113,21 +132,4 @@ if [ "$database" == "yes" ]; then
 else
 	echo "Cancel Database import"
 fi
-
-
-#
-# Laravel Mix Install
-#
-read -p "Install Laravel Mix ? Type Yes (yes) and press enter , cancel with any other key. [yes/no]: " laravelmix
-
-if [ "$laravelmix" == "yes" ]; then
-	
-	rsync -a ./.docker/webpack/package.json app/private/
-	rsync -a ./.docker/webpack/webpack.mix.js app/private/
-	rsync -ra ./.docker/assets app/private/
-	rsync -ra ./.docker/template app/private/fileadmin/
-
-	echo "Laravel Mix installed"
-fi
-
 
