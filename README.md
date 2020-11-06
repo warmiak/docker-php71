@@ -2,7 +2,7 @@
 
 1. Install Docker Container  
    ```
-   git clone ssh://git@bitbucket.ruhmesmeile.tools:7999/~pwolkiewicz/typo3-docker.git
+   git clone git@github.com:warmiak/docker-php71.git
    ```
    
 2. Setup Typo3  
